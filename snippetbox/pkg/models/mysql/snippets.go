@@ -4,6 +4,7 @@ import (
 	"alexedwards.net/snippetbox/pkg/models"
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type SnippetModel struct {
@@ -12,12 +13,10 @@ type SnippetModel struct {
 
 func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	// Write the SQL statement we want to execute.
-	stmt := `SELECT id, title, content, created, expires FROM snippets
+	stmt := `SELECT id, title, content, created, expires, category FROM news
     WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
 
 	// Use the Query() method on the connection pool to execute our
-	// SQL statement. This returns a sql.Rows resultset containing the result of
-	// our query.
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 		// must be pointers to the place you want to copy the data into, and the
 		// number of arguments must be exactly the same as the number of
 		// columns returned by your statement.
-		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires, &s.Category)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +68,7 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	// Write the SQL statement we want to execute. Again, I've split it over two
 	// lines for readability.
-	stmt := `SELECT id, title, content, created, expires FROM snippets
+	stmt := `SELECT id, title, content, created, expires, category FROM news
     WHERE expires > UTC_TIMESTAMP() AND id = ?`
 
 	// Use the QueryRow() method on the connection pool to execute our
@@ -86,7 +85,7 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	// to row.Scan are *pointers* to the place you want to copy the data into,
 	// and the number of arguments must be exactly the same as the number of
 	// columns returned by your statement.
-	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires, &s.Category)
 	if err != nil {
 		// If the query returns no rows, then row.Scan() will return a
 		// sql.ErrNoRows error. We use the errors.Is() function check for that
@@ -103,19 +102,19 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	return s, nil
 }
 
-func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
+func (m *SnippetModel) Insert(title, content, expires, category string) (int, error) {
 	// Write the SQL statement we want to execute. I've split it over two lines
 	// for readability (which is why it's surrounded with backquotes instead
 	// of normal double quotes).
-	stmt := `INSERT INTO snippets (title, content, created, expires)
-    VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
+	stmt := `INSERT INTO news (title, content, created, expires, category)
+    VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY), ?)`
 
 	// Use the Exec() method on the embedded connection pool to execute the
 	// statement. The first parameter is the SQL statement, followed by the
 	// title, content and expiry values for the placeholder parameters. This
 	// method returns a sql.Result object, which contains some basic
 	// information about what happened when the statement was executed.
-	result, err := m.DB.Exec(stmt, title, content, expires)
+	result, err := m.DB.Exec(stmt, title, content, expires, category)
 	if err != nil {
 		return 0, err
 	}
@@ -130,4 +129,34 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
 	// The ID returned has the type int64, so we convert it to an int type
 	// before returning.
 	return int(id), nil
+}
+
+func (m *SnippetModel) LatestByCategory(category string) ([]*models.Snippet, error) {
+	stmt := `SELECT id, title, content, created, expires FROM news
+    WHERE category = ? AND expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
+
+	rows, err := m.DB.Query(stmt, category)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	snippets := []*models.Snippet{}
+
+	for rows.Next() {
+		s := &models.Snippet{}
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+		snippets = append(snippets, s)
+		fmt.Println(snippets)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
 }

@@ -4,7 +4,6 @@ import (
 	"alexedwards.net/snippetbox/pkg/models/mysql"
 	"database/sql"
 	"flag"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -58,8 +57,6 @@ func main() {
 	infoLog.Printf("Starting server on %s", *addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
-
-	fmt.Print("Bekalox")
 }
 
 // The openDB() function wraps sql.Open() and returns a sql.DB connection pool

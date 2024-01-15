@@ -59,6 +59,5 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 
 		cache[name] = ts
 	}
-
 	return cache, nil
 }

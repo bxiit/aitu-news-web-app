@@ -7,11 +7,11 @@ import (
 	"fmt"
 )
 
-type SnippetModel struct {
+type NewsModel struct {
 	DB *sql.DB
 }
 
-func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
+func (m *NewsModel) LatestTen() ([]*models.News, error) {
 	// Write the SQL statement we want to execute.
 	stmt := `SELECT id, title, content, created, expires, category FROM news
     WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
@@ -23,14 +23,14 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	}
 
 	// We defer rows.Close() to ensure the sql.Rows resultset is
-	// always properly closed before the Latest() method returns. This defer
+	// always properly closed before the LatestTen() method returns. This defer
 	// statement should come *after* you check for an error from the Query()
 	// method. Otherwise, if Query() returns an error, you'll get a panic
 	// trying to close a nil resultset.
 	defer rows.Close()
 
 	// Initialize an empty slice to hold the models.Snippets objects.
-	snippets := []*models.Snippet{}
+	snippets := []*models.News{}
 
 	// Use rows.Next to iterate through the rows in the resultset. This
 	// prepares the first (and then each subsequent) row to be acted on by the
@@ -38,10 +38,10 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	// resultset automatically closes itself and frees-up the underlying
 	// database connection.
 	for rows.Next() {
-		// Create a pointer to a new zeroed Snippet struct.
-		s := &models.Snippet{}
+		// Create a pointer to a new zeroed News struct.
+		s := &models.News{}
 		// Use rows.Scan() to copy the values from each field in the row to the
-		// new Snippet object that we created. Again, the arguments to row.Scan()
+		// new News object that we created. Again, the arguments to row.Scan()
 		// must be pointers to the place you want to copy the data into, and the
 		// number of arguments must be exactly the same as the number of
 		// columns returned by your statement.
@@ -65,7 +65,7 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	return snippets, nil
 }
 
-func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+func (m *NewsModel) Get(id int) (*models.News, error) {
 	// Write the SQL statement we want to execute. Again, I've split it over two
 	// lines for readability.
 	stmt := `SELECT id, title, content, created, expires, category FROM news
@@ -77,11 +77,11 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	// holds the result from the database.
 	row := m.DB.QueryRow(stmt, id)
 
-	// Initialize a pointer to a new zeroed Snippet struct.
-	s := &models.Snippet{}
+	// Initialize a pointer to a new zeroed News struct.
+	s := &models.News{}
 
 	// Use row.Scan() to copy the values from each field in sql.Row to the
-	// corresponding field in the Snippet struct. Notice that the arguments
+	// corresponding field in the News struct. Notice that the arguments
 	// to row.Scan are *pointers* to the place you want to copy the data into,
 	// and the number of arguments must be exactly the same as the number of
 	// columns returned by your statement.
@@ -98,11 +98,11 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 		}
 	}
 
-	// If everything went OK then return the Snippet object.
+	// If everything went OK then return the News object.
 	return s, nil
 }
 
-func (m *SnippetModel) Insert(title, content, expires, category string) (int, error) {
+func (m *NewsModel) Insert(title, content, expires, category string) (int, error) {
 	// Write the SQL statement we want to execute. I've split it over two lines
 	// for readability (which is why it's surrounded with backquotes instead
 	// of normal double quotes).
@@ -131,7 +131,7 @@ func (m *SnippetModel) Insert(title, content, expires, category string) (int, er
 	return int(id), nil
 }
 
-func (m *SnippetModel) LatestByCategory(category string) ([]*models.Snippet, error) {
+func (m *NewsModel) GetCategory(category string) ([]*models.News, error) {
 	stmt := `SELECT id, title, content, created, expires FROM news
     WHERE category = ? AND expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
 
@@ -142,10 +142,10 @@ func (m *SnippetModel) LatestByCategory(category string) ([]*models.Snippet, err
 
 	defer rows.Close()
 
-	snippets := []*models.Snippet{}
+	snippets := []*models.News{}
 
 	for rows.Next() {
-		s := &models.Snippet{}
+		s := &models.News{}
 		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 		if err != nil {
 			return nil, err
@@ -159,4 +159,14 @@ func (m *SnippetModel) LatestByCategory(category string) ([]*models.Snippet, err
 	}
 
 	return snippets, nil
+}
+
+func (m *NewsModel) Delete(id int) error {
+	stmt := `DELETE FROM news WHERE id = ?`
+
+	_, err := m.DB.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

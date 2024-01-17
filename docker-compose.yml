@@ -1,15 +1,15 @@
-version: '3'
-
 services:
-  mysql:
-    image: mysql:latest
-    container_name: my-mysql-container
+  postgres:
+    container_name: news-app
+    image: postgres
     environment:
-      MYSQL_ROOT_PASSWORD: 060923
-      MYSQL_DATABASE: minedb
-      MYSQL_USER: bxit
-      MYSQL_PASSWORD: aa
-    ports:
-      - "3308:3306"
+      POSTGRES_USER: bxit
+      POSTGRES_PASSWORD: aa
+      PGDATA: /data/postgresql
     volumes:
-      - ./mysql-data:/var/lib/mysql
+      - bxit-db:/data/postgresql
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+volumes:
+  bxit-db:

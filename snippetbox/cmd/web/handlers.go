@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -16,8 +15,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.snippets.Latest()
-	log.Printf("home after lates")
+	s, err := app.news.LatestTen()
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -36,7 +34,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.snippets.Get(id)
+	s, err := app.news.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -52,7 +50,43 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) showUpdate(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	fmt.Printf(strconv.Itoa(id))
+
+	s, err := app.news.Get(id)
+	if err != nil {
+		return
+	}
+
+	app.render(w, r, "update.page.tmpl", &templateData{
+		Snippet: s,
+	})
+}
+
+func (app *application) updateNews(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		app.clientError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	category := r.FormValue("category")
+
+	s, err := app.news.Update(id, title, content, category)
+	if err != nil {
+		return
+	}
+
+	app.render(w, r, "show.page.tmpl", &templateData{
+		Snippet: s,
+	})
+}
+
+func (app *application) createNews(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		app.clientError(w, http.StatusMethodNotAllowed)
@@ -67,7 +101,7 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 
 	// Pass the data to the SnippetModel.Insert() method, receiving the
 	// ID of the new record back.
-	id, err := app.snippets.Insert(title, content, expires, category)
+	id, err := app.news.Insert(title, content, expires, category)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -82,7 +116,7 @@ func (app *application) showCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) contacts(w http.ResponseWriter, r *http.Request) {
-	s, err := app.snippets.Latest()
+	s, err := app.news.LatestTen()
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -94,7 +128,7 @@ func (app *application) contacts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) students(w http.ResponseWriter, r *http.Request) {
-	s, err := app.snippets.LatestByCategory("Students")
+	s, err := app.news.GetCategory("Students")
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -106,7 +140,7 @@ func (app *application) students(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) staff(w http.ResponseWriter, r *http.Request) {
-	s, err := app.snippets.LatestByCategory("Staff")
+	s, err := app.news.GetCategory("Staff")
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -118,7 +152,7 @@ func (app *application) staff(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) researchers(w http.ResponseWriter, r *http.Request) {
-	s, err := app.snippets.LatestByCategory("Researchers")
+	s, err := app.news.GetCategory("Researchers")
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -130,7 +164,7 @@ func (app *application) researchers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) applicants(w http.ResponseWriter, r *http.Request) {
-	s, err := app.snippets.LatestByCategory("Applicants")
+	s, err := app.news.GetCategory("Applicants")
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -139,4 +173,25 @@ func (app *application) applicants(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "applicants.page.tmpl", &templateData{
 		Snippets: s,
 	})
+}
+
+func (app *application) delete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.clientError(w, http.StatusMethodNotAllowed)
+		return
+	}
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	fmt.Printf(strconv.Itoa(id))
+	if err != nil || id < 1 {
+		app.clientError(w, http.StatusInternalServerError)
+		return
+	}
+
+	s := app.news.Delete(id)
+	if s != nil {
+		app.serverError(w, s)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/"), http.StatusSeeOther)
 }

@@ -10,8 +10,8 @@ import (
 // Add a CurrentYear field to the templateData struct.
 type templateData struct {
 	CurrentYear int
-	Snippet     *models.Snippet
-	Snippets    []*models.Snippet
+	Snippet     *models.News
+	Snippets    []*models.News
 }
 
 // Create a humanDate function which returns a nicely formatted string

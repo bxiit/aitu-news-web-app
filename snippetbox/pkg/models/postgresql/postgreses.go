@@ -121,6 +121,7 @@ func (m *NewsModel) Update(id int, title, content, category string) (*models.New
 		return nil, err
 	}
 	return news, nil
+	/// for test git
 }
 
 func (m *NewsModel) Insert(title, content, expires, category string) (int, error) {

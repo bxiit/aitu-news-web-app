@@ -7,13 +7,13 @@
     <div class='snippet'>
         <div class='metadata'>
             <strong>{{.Title}}</strong>
+            <code>For  {{.Category}}</code>
             <span>#{{.ID}}</span>
         </div>
         <div>
             <code>{{.Content}}</code>
         </div>
         <div class='metadata'>
-            <!-- Use the new template function here -->
             <time>Created: {{humanDate .Created}}</time>
             <time>Expires: {{humanDate .Expires}}</time>
         </div>
@@ -21,12 +21,7 @@
             <button type="submit">DELETE</button>
         </form>
         <form method="post" action="/snippet/showUpdate">
-<!--            <input type="hidden" name="title" value="{{.Title}}">-->
             <input type="hidden" name="id" value="{{.ID}}">
-<!--            <input type="hidden" name="content" value="{{.Content}}">-->
-<!--            <input type="hidden" name="created" value="{{.Created}}">-->
-<!--            <input type="hidden" name="expires" value="{{.Expires}}">-->
-<!--            <input type="hidden" name="category" value="{{.Category}}">-->
             <button type="submit">UPDATE</button>
         </form>
     </div>

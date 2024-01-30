@@ -21,7 +21,7 @@ type application struct {
 }
 
 func main() {
-	data := "user=bxit password=aa dbname=postgres sslmode=disable host=localhost port=5435"
+	data := "user=bxit password=aa dbname=postgres sslmode=disable host=localhost port=5433"
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	flag.Parse()
 

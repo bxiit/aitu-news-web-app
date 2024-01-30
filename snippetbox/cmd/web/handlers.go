@@ -28,7 +28,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id")) // Для извлечения поля айди из ссылки
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
@@ -52,7 +52,6 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) showUpdate(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.FormValue("id"))
-	fmt.Printf(strconv.Itoa(id))
 
 	s, err := app.news.Get(id)
 	if err != nil {
@@ -92,6 +91,8 @@ func (app *application) createNews(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
+
+	r.ParseForm()
 
 	// Извлекаем данные из формы
 	title := r.FormValue("title")

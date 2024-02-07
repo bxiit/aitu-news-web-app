@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexedwards.net/snippetbox/pkg/forms"
 	"alexedwards.net/snippetbox/pkg/models"
 	"html/template"
 	"path/filepath"
@@ -11,6 +12,9 @@ type templateData struct {
 	CurrentYear int
 	Snippet     *models.News
 	Snippets    []*models.News
+	//FormData    url.Values
+	//FormErrors  map[string]string (below instead)
+	Form *forms.Form
 }
 
 func humanDate(t time.Time) string {

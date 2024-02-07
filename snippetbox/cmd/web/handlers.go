@@ -1,12 +1,12 @@
 package main
 
 import (
+	"alexedwards.net/snippetbox/pkg/forms"
+	"alexedwards.net/snippetbox/pkg/models"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"alexedwards.net/snippetbox/pkg/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
@@ -92,28 +92,43 @@ func (app *application) createNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	// Извлекаем данные из формы
-	title := r.FormValue("title")
-	content := r.FormValue("content")
-	expires := "7"
-	category := r.FormValue("category")
+	//title := r.PostForm.Get("title")
+	//content := r.PostForm.Get("content")
+	//expires := "7"
+	//category := r.PostForm.Get("category")
 
+	form := forms.New(r.PostForm)
+	form.Required("title", "content")
+	form.MaxLength("title", 100)
+
+	if !form.Valid() {
+		app.render(w, r, "create.page.tmpl", &templateData{Form: form})
+		return
+	}
 	// Pass the data to the SnippetModel.Insert() method, receiving the
 	// ID of the new record back.
-	id, err := app.news.Insert(title, content, expires, category)
+	id, err := app.news.Insert(form.Get("title"), form.Get("content"), "7", form.Get("category"))
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	// Redirect the user to the relevant page for the snippet.
-	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 
 func (app *application) showCreate(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "create.page.tmpl", &templateData{})
+	app.render(w, r, "create.page.tmpl", &templateData{
+		// Pass a new empty forms.Form object to the template.
+		Form: forms.New(nil),
+	})
 }
 
 func (app *application) contacts(w http.ResponseWriter, r *http.Request) {

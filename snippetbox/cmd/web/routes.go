@@ -1,25 +1,41 @@
 package main
 
-import "net/http"
+import (
+	"github.com/bmizerany/pat"
+	"github.com/justinas/alice"
+	"net/http"
+)
 
-func (app *application) routes() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createNews)
-	mux.HandleFunc("/snippet/showCreate", app.showCreate)
-	mux.HandleFunc("/create", app.createNews)
-	mux.HandleFunc("/snippet/delete", app.delete)
-	mux.HandleFunc("/snippet/update", app.updateNews)
-	mux.HandleFunc("/snippet/showUpdate", app.showUpdate)
-	mux.HandleFunc("/contacts", app.contacts)
-	mux.HandleFunc("/students", app.students)
-	mux.HandleFunc("/staff", app.staff)
-	mux.HandleFunc("/applicants", app.applicants)
-	mux.HandleFunc("/researchers", app.researchers)
+// secureHeaders → servemux → application handler → servemux → secureHeaders
+// logRequest ↔ secureHeaders ↔ servemux ↔ application handler
+func (app *application) routes() http.Handler {
+	// Create a middleware chain containing our 'standard' middleware
+	// which will be used for every request our application receives.
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	mux := pat.New()
+	mux.Get("/", http.HandlerFunc(app.home))
+	mux.Get("/snippet", http.HandlerFunc(app.showSnippet))
+	mux.Get("/snippet/create", http.HandlerFunc(app.showCreate))
+	mux.Post("/snippet/create", http.HandlerFunc(app.createNews))
+	//mux.Post("/create", http.HandlerFunc(app.createNews))
+	mux.Post("/snippet/delete", http.HandlerFunc(app.delete))
+	mux.Post("/snippet/update", http.HandlerFunc(app.updateNews))
+	mux.Post("/snippet/showUpdate", http.HandlerFunc(app.showUpdate))
+	mux.Get("/contacts", http.HandlerFunc(app.contacts))
+	mux.Get("/students", http.HandlerFunc(app.students))
+	mux.Get("/staff", http.HandlerFunc(app.staff))
+	mux.Get("/applicants", http.HandlerFunc(app.applicants))
+	mux.Get("/researchers", http.HandlerFunc(app.researchers))
+	mux.Get("/snippet/:id", http.HandlerFunc(app.showSnippet))
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	mux.Get("/static/", http.StripPrefix("/static", fileServer))
 
-	return mux
+	// Pass the servemux as the 'next' parameter to the secureHeaders middleware.
+	// Because secureHeaders is just a function, and the function returns a
+	// http.Handler we don't need to do anything else.
+
+	// Return the 'standard' middleware chain followed by the servemux.
+	return standardMiddleware.Then(mux)
 }

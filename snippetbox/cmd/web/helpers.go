@@ -40,6 +40,15 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 		td = &templateData{}
 	}
 	td.CurrentYear = time.Now().Year()
+	td.Flash = app.session.PopString(r, "flash")
+
+	// Add the flash message to the template data, if one exists
+
+	// Use the PopString() method to retrieve the value for the "flash" key.
+	// PopString() also deletes the key and value from the session data, so it
+	// acts like a one-time fetch. If there is no matching key in the session
+	// data this will return the empty string.
+	td.IsAuthenticated = app.isAuthenticated(r)
 	return td
 }
 
@@ -61,4 +70,9 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	}
 
 	buf.WriteTo(w)
+}
+
+// Return true if the current request is from authenticated user, otherwise return false.
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.session.Exists(r, "authenticatedUserID")
 }

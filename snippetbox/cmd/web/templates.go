@@ -8,13 +8,16 @@ import (
 	"time"
 )
 
+// Add a Flash field to the templateData struct.
 type templateData struct {
 	CurrentYear int
 	Snippet     *models.News
 	Snippets    []*models.News
 	//FormData    url.Values
 	//FormErrors  map[string]string (below instead)
-	Form *forms.Form
+	Form            *forms.Form
+	Flash           string
+	IsAuthenticated bool
 }
 
 func humanDate(t time.Time) string {

@@ -9,33 +9,48 @@ import (
 // secureHeaders → servemux → application handler → servemux → secureHeaders
 // logRequest ↔ secureHeaders ↔ servemux ↔ application handler
 func (app *application) routes() http.Handler {
-	// Create a middleware chain containing our 'standard' middleware
-	// which will be used for every request our application receives.
+	// Содержит стандартные middleware, которые будут применяться к каждому запросу,
+	// включая обработку паник, логгирование и настройку безопасных заголовков.
 	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
-	mux := pat.New()
-	mux.Get("/", http.HandlerFunc(app.home))
-	mux.Get("/snippet", http.HandlerFunc(app.showSnippet))
-	mux.Get("/snippet/create", http.HandlerFunc(app.showCreate))
-	mux.Post("/snippet/create", http.HandlerFunc(app.createNews))
-	//mux.Post("/create", http.HandlerFunc(app.createNews))
-	mux.Post("/snippet/delete", http.HandlerFunc(app.delete))
-	mux.Post("/snippet/update", http.HandlerFunc(app.updateNews))
-	mux.Post("/snippet/showUpdate", http.HandlerFunc(app.showUpdate))
-	mux.Get("/contacts", http.HandlerFunc(app.contacts))
-	mux.Get("/students", http.HandlerFunc(app.students))
-	mux.Get("/staff", http.HandlerFunc(app.staff))
-	mux.Get("/applicants", http.HandlerFunc(app.applicants))
-	mux.Get("/researchers", http.HandlerFunc(app.researchers))
-	mux.Get("/snippet/:id", http.HandlerFunc(app.showSnippet))
+	// dynamicMiddleware содержит middleware, специфичные для динамических маршрутов вашего приложения,
+	// например, обработку сеансов.
+	dynamicMiddleware := alice.New(app.session.Enable)
 
+	mux := pat.New()
+
+	// Update these routes to use the new dynamic middleware chain followed
+	// by the appropriate handler function.
+	mux.Get("/", dynamicMiddleware.ThenFunc(app.home))
+
+	mux.Get("/snippet", dynamicMiddleware.ThenFunc(app.showSnippet))
+	// Add the requireAuthentication middleware to the chain.
+	mux.Get("/snippet/create", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.showCreate))
+	// Add the requireAuthentication middleware to the chain.
+	mux.Post("/snippet/create", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.createNews))
+	//mux.Post("/create", http.HandlerFunc(app.createNews))
+	mux.Post("/snippet/delete", dynamicMiddleware.ThenFunc(app.delete))
+	mux.Post("/snippet/update", dynamicMiddleware.ThenFunc(app.updateNews))
+	mux.Post("/snippet/showUpdate", dynamicMiddleware.ThenFunc(app.showUpdate))
+
+	mux.Get("/contacts", dynamicMiddleware.ThenFunc(app.contacts))
+	mux.Get("/students", dynamicMiddleware.ThenFunc(app.students))
+	mux.Get("/staff", dynamicMiddleware.ThenFunc(app.staff))
+	mux.Get("/applicants", dynamicMiddleware.ThenFunc(app.applicants))
+	mux.Get("/researchers", dynamicMiddleware.ThenFunc(app.researchers))
+	mux.Get("/snippet/:id", dynamicMiddleware.ThenFunc(app.showSnippet))
+
+	// authentication
+	mux.Get("/user/signup", dynamicMiddleware.ThenFunc(app.signupUserForm))
+	mux.Post("/user/signup", dynamicMiddleware.ThenFunc(app.signupUser))
+	mux.Get("/user/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
+	mux.Post("/user/login", dynamicMiddleware.ThenFunc(app.loginUser))
+
+	mux.Post("/user/logout", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.logoutUser))
+
+	// Leave the static files route unchanged.
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Get("/static/", http.StripPrefix("/static", fileServer))
 
-	// Pass the servemux as the 'next' parameter to the secureHeaders middleware.
-	// Because secureHeaders is just a function, and the function returns a
-	// http.Handler we don't need to do anything else.
-
-	// Return the 'standard' middleware chain followed by the servemux.
 	return standardMiddleware.Then(mux)
 }

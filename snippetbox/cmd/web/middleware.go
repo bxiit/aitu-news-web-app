@@ -39,6 +39,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				w.Header().Set("Connection", "close")
 				// Call the app.serverError helper method to return a 500
 				// Internal Server response.
+				fmt.Printf("ERROR HERE")
 				app.serverError(w, fmt.Errorf("%s", err))
 			}
 		}()
@@ -46,11 +47,30 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-// sample
-func myMiddleware(next http.Handler) http.Handler {
+func (app *application) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Any code here will execute on the way down the chain.
+		// If the user is not authenticated, redirect them to the login page and
+		// return from the middleware chain so that no subsequent handlers in
+		// the chain are executed.
+		if !app.isAuthenticated(r) {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+		// Otherwise set the "Cache-Control: no-store" header so that pages
+		// require authentication are not stored in the users browser cache (or
+		// other intermediary cache).
+		w.Header().Add("Cache-Control", "no-store")
+		// And call the next handler in the chain.
 		next.ServeHTTP(w, r)
-		// Any code here will execute on the way back up the chain.
 	})
 }
+
+//
+//// sample
+//func myMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		// Any code here will execute on the way down the chain.
+//		next.ServeHTTP(w, r)
+//		// Any code here will execute on the way back up the chain.
+//	})
+//}

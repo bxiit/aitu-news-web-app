@@ -1,29 +1,29 @@
-{{template "base" .}}
+{{ template "base" . }}
 
-{{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
+{{ define "title" }}Snippet #{{ .Snippet.ID }}{{ end }}
 
-{{define "main"}}
-    {{with .Snippet}}
-    <div class='snippet'>
-        <div class='metadata'>
-            <strong>{{.Title}}</strong>
-            <code>For  {{.Category}}</code>
-            <span>#{{.ID}}</span>
+{{ define "main" }}
+    {{ with .Snippet }}
+        <div class='snippet'>
+            <div class='metadata'>
+                <strong>{{ .Title }}</strong>
+                <code>For {{ .Category }}</code>
+                <span>#{{ .ID }}</span>
+            </div>
+            <div>
+                <code>{{ .Content }}</code>
+            </div>
+            <div class='metadata'>
+                <time>Created: {{ humanDate .Created }}</time>
+                <time>Expires: {{ humanDate .Expires }}</time>
+            </div>
+            <form method="post" action="/snippet/delete?id={{.ID}}">
+                <button type="submit">DELETE</button>
+            </form>
+            <form method="post" action="/snippet/showUpdate">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <button type="submit">UPDATE</button>
+            </form>
         </div>
-        <div>
-            <code>{{.Content}}</code>
-        </div>
-        <div class='metadata'>
-            <time>Created: {{humanDate .Created}}</time>
-            <time>Expires: {{humanDate .Expires}}</time>
-        </div>
-        <form method="post" action="/snippet/delete?id={{.ID}}">
-            <button type="submit">DELETE</button>
-        </form>
-        <form method="post" action="/snippet/showUpdate">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <button type="submit">UPDATE</button>
-        </form>
-    </div>
-    {{end}}
-{{end}}
+    {{ end }}
+{{ end }}

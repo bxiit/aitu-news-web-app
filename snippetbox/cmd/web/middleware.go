@@ -5,12 +5,11 @@ import (
 	"net/http"
 )
 
-// to put these headers on response header
-// X-Frame-Options: deny
-//X-XSS-Protection: 1; mode=block
-
 // (secureHeaders → servemux → application handler) - is the chain
 
+// to put these headers on response header
+// X-Frame-Options: deny
+// X-XSS-Protection: 1; mode=block
 func secureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
@@ -39,7 +38,6 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				w.Header().Set("Connection", "close")
 				// Call the app.serverError helper method to return a 500
 				// Internal Server response.
-				fmt.Printf("ERROR HERE")
 				app.serverError(w, fmt.Errorf("%s", err))
 			}
 		}()
@@ -64,13 +62,3 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-//
-//// sample
-//func myMiddleware(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		// Any code here will execute on the way down the chain.
-//		next.ServeHTTP(w, r)
-//		// Any code here will execute on the way back up the chain.
-//	})
-//}

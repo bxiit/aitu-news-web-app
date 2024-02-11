@@ -15,17 +15,16 @@ type UserModel struct {
 
 // We'll use the Insert method to add a new record to the users table.
 func (m *UserModel) Insert(name, email, password string) error {
-
 	// Create a bcrypt hash of the plain-text password.
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
 	}
 
-	stmt := `INSERT INTO users (name, email, hashed_password, created)
-	VALUES($1, $2, $3, CURRENT_TIMESTAMP);`
+	stmt := `INSERT INTO users (name, email, hashed_password, created, role)
+	VALUES($1, $2, $3, CURRENT_TIMESTAMP, $4);`
 
-	_, err = m.DB.Exec(stmt, name, email, string(hashedPassword))
+	_, err = m.DB.Exec(stmt, name, email, string(hashedPassword), "student")
 	if err != nil {
 		// If this returns an error, we use the errors.As() function to check
 		// whether the error has the type *mysql.MySQLError. If it does, the
@@ -82,5 +81,66 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 // We'll use the Get method to fetch details for a specific user based
 // on their user ID.
 func (m *UserModel) Get(id int) (*models.User, error) {
-	return nil, nil
+	stmt := `SELECT * FROM users WHERE id = $1`
+
+	userRow := m.DB.QueryRow(stmt, id)
+
+	u := &models.User{}
+
+	err := userRow.Scan(&u.ID, &u.Name, &u.Email, &u.HashedPassword, &u.Created, &u.Active, &u.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+
+	return u, nil
+}
+
+func (m *UserModel) GetAll() ([]*models.User, error) {
+	stmt := `SELECT * FROM users`
+
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []*models.User{}
+
+	for rows.Next() {
+		user := &models.User{}
+		err = rows.Scan(&user.ID, &user.Name, &user.Email, &user.HashedPassword, &user.Created, &user.Active, &user.Role)
+		if err != nil {
+			return nil, err
+		}
+		// Append it to the slice of snippets.
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (m *UserModel) GetRole(id int) string {
+	stmt := `SELECT role FROM users WHERE id = $1`
+	var role string
+	err := m.DB.QueryRow(stmt, id).Scan(&role)
+	if err != nil {
+		return ""
+	}
+
+	return role
+}
+
+func (m *UserModel) ChangeRole(id int, newRole string) {
+	stmt := `UPDATE users SET role = $1 WHERE id = $2`
+	_, err := m.DB.Exec(stmt, newRole, id)
+	if err != nil {
+		return
+	}
 }

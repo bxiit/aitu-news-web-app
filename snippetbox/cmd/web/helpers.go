@@ -49,6 +49,7 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	// acts like a one-time fetch. If there is no matching key in the session
 	// data this will return the empty string.
 	td.IsAuthenticated = app.isAuthenticated(r)
+	td.Role = app.whoIsThis(r)
 	return td
 }
 
@@ -75,4 +76,12 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 // Return true if the current request is from authenticated user, otherwise return false.
 func (app *application) isAuthenticated(r *http.Request) bool {
 	return app.session.Exists(r, "authenticatedUserID")
+}
+
+func (app *application) whoIsThis(r *http.Request) string {
+	if app.session.Exists(r, "authenticatedUserID") {
+		currentId := app.session.Get(r, "authenticatedUserID").(int)
+		return app.users.GetRole(currentId)
+	}
+	return "guest"
 }

@@ -21,7 +21,7 @@ type application struct {
 	infoLog       *log.Logger       // Понятное дело логгеры
 	session       *sessions.Session // TODO понять для чего
 	news          *postgresql.NewsModel
-	templateCache map[string]*template.Template // TODO понять для чего
+	templateCache map[string]*template.Template // Оптимизация засчет избегания перекомпилирования
 	users         *postgresql.UserModel
 }
 
@@ -76,11 +76,10 @@ func main() {
 
 	// Set the server's TLSConfig field to use the tlsConfig variable we just created
 	srv := &http.Server{
-		Addr:      *addr,
-		ErrorLog:  errorLog,
-		Handler:   app.routes(),
-		TLSConfig: tlsConfig,
-		// Add Idle, Read and Write timeouts to the server.
+		Addr:         *addr,
+		ErrorLog:     errorLog,
+		Handler:      app.routes(),
+		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -92,7 +91,6 @@ func main() {
 	// pass in the paths to the TLS certificate and corresponding private key as
 	// the two parameters.
 	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
-	//err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
 

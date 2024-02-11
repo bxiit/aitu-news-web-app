@@ -1,29 +1,29 @@
 {{template "base" .}}
 {{define "title"}}Create News{{end}}
 {{define "main"}}
-<form method="post" action="/snippet/create">
-    {{with .Form}}
-    <label for="title">Title:</label>
-    {{with .Errors.Get "title"}}
-        <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" id="title" name="title" value='{{.Get "title"}}'>
-    <br>
-    {{with .Errors.Get "content"}}
-        <label class="error">{{.}}</label>
-    {{end}}
-    <label for="content">Content:</label>
-    <textarea id="content" name="content" rows="4">{{.Get "content"}}</textarea>
-    <br>
-    <label for="category">Category:</label>
-    <select id="category" name="category">
-        <option value="Students">Students</option>
-        <option value="Staff">Staff</option>
-        <option value="Applicants">Applicants</option>
-        <option value="Researchers">Researchers</option>
-    </select>
-    <br>
-    <button type="submit">Create News</button>
-    {{end}}
-</form>
+    <form method="post" action="/snippet/create">
+        {{with .Form}}
+            <label for="title">Title:</label>
+            {{with .Errors.Get "title"}}
+                <label class="error">{{.}}</label>
+            {{end}}
+            <input type="text" id="title" name="title" value='{{.Get "title"}}'>
+            <br>
+            {{with .Errors.Get "content"}}
+                <label class="error">{{.}}</label>
+            {{end}}
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" rows="4">{{.Get "content"}}</textarea>
+            <br>
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <option value="Students">Students</option>
+                <option value="Staff">Staff</option>
+                <option value="Applicants">Applicants</option>
+                <option value="Researchers">Researchers</option>
+            </select>
+            <br>
+            <button type="submit">Create News</button>
+        {{end}}
+    </form>
 {{end}}

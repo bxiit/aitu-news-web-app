@@ -1,0 +1,26 @@
+{{ template "base" . }}
+
+{{ define "title" }}User #{{ .User.ID }}{{ end }}
+
+{{ define "main" }}
+    {{ with .User }}
+        <div class='snippet'>
+            <div class='metadata'>
+                <strong>{{ .Name }}</strong>
+                <span>#{{ .ID }}</span>
+            </div>
+            <div class='metadata'>
+                <time>Created: {{ humanDate .Created }}</time>
+            </div>
+            <form method="post" action="/user/changeRole?id={{ .ID }}">
+                <label for="role"></label>
+                <select id="role" name="role">
+                    <option value="student"{{ if eq .Role "student" }} selected {{ end }}>Student</option>
+                    <option value="teacher"{{ if eq .Role "teacher" }} selected {{ end }}>Teacher</option>
+                </select>
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit">Change the role</button>
+            </form>
+        </div>
+    {{ end }}
+{{ end }}

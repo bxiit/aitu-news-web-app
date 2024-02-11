@@ -1,0 +1,26 @@
+{{ template "base" . }}
+
+{{ define "title" }}Manage page{{ end }}
+
+{{ define "main"}}
+    {{ if .Users }}
+        <table>
+            <tr>
+                <th>Email</th>
+                <th>Created</th>
+                <th>ID</th>
+            </tr>
+            {{ range .Users }}
+                {{ if ne .Role "admin" }}
+                    <tr>
+                        <td><a href='/user/{{ .ID }}'>{{ .Email }}</a></td>
+                        <td>{{ humanDate .Created }}</td>
+                        <td>#{{ .ID }}</td>
+                    </tr>
+                {{ end }}
+            {{ end }}
+        </table>
+    {{ else }}
+        <p>There's no user to see here... yet!</p>
+    {{ end }}
+{{ end }}

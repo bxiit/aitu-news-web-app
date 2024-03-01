@@ -19,6 +19,8 @@ type templateData struct {
 	Role            string
 	User            *models.User
 	Users           []*models.User
+	CommentFlash    string
+	Comments        []*models.Comment
 }
 
 func humanDate(t time.Time) string {

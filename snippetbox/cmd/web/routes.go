@@ -33,6 +33,10 @@ func (app *application) routes() http.Handler {
 	mux.Post("/snippet/update", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.updateNews))
 	mux.Post("/snippet/showUpdate", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.showUpdate))
 
+	// comment
+	mux.Post("/snippet/createComment", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.createComment))
+	mux.Post("/snippet/deleteComment", dynamicMiddleware.Append(app.requireAuthentication).ThenFunc(app.deleteComment))
+
 	mux.Get("/contacts", dynamicMiddleware.ThenFunc(app.contacts))
 	mux.Get("/students", dynamicMiddleware.ThenFunc(app.students))
 	mux.Get("/staff", dynamicMiddleware.ThenFunc(app.staff))

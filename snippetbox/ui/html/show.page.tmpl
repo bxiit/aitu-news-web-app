@@ -24,6 +24,27 @@
                 <input type="hidden" name="id" value="{{.ID}}">
                 <button type="submit">UPDATE</button>
             </form>
+            <form method="post" action="/snippet/createComment">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <label for="text"></label>
+                <textarea id="text" name="text" rows="4"></textarea>
+                <button type="submit">LEAVE COMMENT</button>
+            </form>
         </div>
     {{ end }}
+    {{if .Comments}}
+        {{range .Comments}}
+            <tr>
+                <td>{{ .Text }}</td>
+            </tr>
+            <br>
+
+{{/*            <form action="/snippet/deleteComment" method="post">*/}}
+{{/*                <input type="hidden" name="commentId" value="{{ID}}">*/}}
+{{/*                <input type="hidden" name="newsId" value="{{.Snippet.ID}}">*/}}
+{{/*            </form>*/}}
+        {{end}}
+    {{else}}
+        <p>There's no comment to see here... yet!</p>
+    {{end}}
 {{ end }}

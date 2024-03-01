@@ -64,10 +64,11 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) currentUserInfo(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		// And call the next handler in the chain.
-		next.ServeHTTP(w, r)
-	})
-}
+//
+//func (app *application) currentUserInfo(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//
+//		// And call the next handler in the chain.
+//		next.ServeHTTP(w, r)
+//	})
+//}

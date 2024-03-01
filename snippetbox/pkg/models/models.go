@@ -33,3 +33,10 @@ type User struct {
 	Active         bool
 	Role           string
 }
+
+type Comment struct {
+	ID     int
+	Text   string
+	UserId int
+	NewsID int
+}

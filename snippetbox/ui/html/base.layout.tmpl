@@ -63,6 +63,9 @@
         {{ with .Flash }}
             <div class="flash">{{.}}</div>
         {{ end }}
+        {{ with .CommentFlash}}
+            <div class="flash">{{.}}</div>
+        {{end}}
 
         {{ template "main" . }}
     </main>

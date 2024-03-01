@@ -23,6 +23,7 @@ type application struct {
 	news          *postgresql.NewsModel
 	templateCache map[string]*template.Template // Оптимизация засчет избегания перекомпилирования
 	users         *postgresql.UserModel
+	comment       *postgresql.CommentModel
 }
 
 func main() {
@@ -65,6 +66,7 @@ func main() {
 		news:          &postgresql.NewsModel{DB: db},
 		templateCache: templateCache,
 		users:         &postgresql.UserModel{DB: db},
+		comment:       &postgresql.CommentModel{DB: db},
 	}
 
 	// Initialize a tls.Config struct to hold the non-default TLS settings we want

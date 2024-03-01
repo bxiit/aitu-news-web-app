@@ -4,7 +4,6 @@
     <head>
         <meta charset='utf-8'>
         <title>{{template "title" .}} - Aitu News</title>
-        <title>{{.}}</title>
         <link rel='stylesheet' href='/static/css/main.css'>
         <link rel='shortcut icon' href='/static/img/aitu-logo.png' type="image/png">
         <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700'>
@@ -25,10 +24,18 @@
     <body>
     <header>
         <h1><a href='/'>Aitu news</a></h1>
-        <div>
-            <p>Первая строка текста</p>
-            <p>Вторая строка текста</p>
-        </div>
+        {{if .IsAuthenticated}}
+            {{with .User}}
+                <div>
+                    <p>{{.Email}}</p>
+                    <p>{{.Role}}</p>
+                </div>
+            {{end}}
+        {{else}}
+            <div>
+                <p>guest</p>
+            </div>
+        {{end}}
     </header>
     <nav>
         <a href='/'>Home</a>

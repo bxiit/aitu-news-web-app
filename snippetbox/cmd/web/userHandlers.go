@@ -76,6 +76,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	// Add the ID of the current user to the session, so that they are now 'logged
 	// in'.
 	app.session.Put(r, "authenticatedUserID", id)
+
 	// Redirect the user to the create snippet page.
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

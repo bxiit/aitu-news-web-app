@@ -85,3 +85,12 @@ func (app *application) whoIsThis(r *http.Request) string {
 	}
 	return "guest"
 }
+
+//
+//func (app *application) currentUser(r *http.Request) (*models.User, string) {
+//	if app.isAuthenticated(r) {
+//		return nil, "guest"
+//	}
+//
+//	app.
+//}

@@ -21,6 +21,16 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	println("till error nh")
+
+	if app.session.Exists(r, "authenticatedUserID") {
+		id := app.session.Get(r, "authenticatedUserID").(int)
+		user, _ := app.users.Get(id)
+		app.render(w, r, "home.page.tmpl", &templateData{
+			Snippets: s,
+			User:     user,
+		})
+	}
 	app.render(w, r, "home.page.tmpl", &templateData{
 		Snippets: s,
 	})
